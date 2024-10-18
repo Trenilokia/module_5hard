@@ -1,9 +1,17 @@
+from time import sleep
+
 
 class User:
     def __init__(self, nickname, password, age):
         self.nickname = nickname
-        self.password = hash(password)
+        self.password = password
         self.age = age
+
+    def __repr__(self):
+        return f"{self.nickname}"
+
+    def __str__(self):
+        return f"{self.nickname}"
 
 
 class Video:
@@ -19,9 +27,6 @@ class Video:
     def __str__(self):
         return f"{self.title}"
 
-    #    def __contains__(self, item):
-    #        return item in self.title
-
     def __time_now___(self, s=0):
         pass
 
@@ -30,25 +35,32 @@ class UrTube:
 
     def __init__(self):
         self.videos = []
-        self.users = {}
-        self.current_user = []
+        self.users = []
+        self.current_user = None
 
     def register(self, nickname, password, age):
-        if nickname in self.users:
-            print(f"Пользователь {self.users[nickname]} уже существует")
-        else:
-            self.users[nickname] = User(nickname, password, age)
-            current_user = self.users[nickname]
-            return self.users[nickname]
+        password = hash(password)
+        for i in self.users:
+            if i.nickname == nickname:
+                print(f"Пользователь {nickname} уже существует")
+                return
+
+        new_user = User(nickname, password, age)
+        self.users.append(new_user)
+        self.current_user = new_user
 
     def login(self, nickname, password):
-        if self.users[nickname].password == hash(password):
+        if nickname in self.users[nickname] and self.users[nickname].password == hash(password):
             self.current_user = self.users[nickname]
-            return True
+
+    def __eq__(self, other):
+        return self.current_user == other
+
+    def __ne__(self, other):
+        return self.current_user != other
 
     def logout(self):
-        if self.register != self.current_user:
-            self.current_user = None
+        self.current_user = None
 
     def add(self, *args):
         result = []
@@ -56,7 +68,6 @@ class UrTube:
             if args not in self.videos:
                 result.append(i)
         self.videos += result
-        return self.videos
 
     def __contains__(self, item):
         return item in self.videos
@@ -70,10 +81,22 @@ class UrTube:
         return found
 
     def watch_video(self, title):
-        video = next((x for x in self.videos if x.title == title), None)
-        if video is not None:
-            for i in video.duration:
-                print(i)
+        if not self.current_user:
+            print('Войдите в аккаунт, чтобы смотреть видео')
+            return
+
+        for i in self.videos:
+            if title in str(i):
+                video = i
+                if video.adult_mode and self.current_user.age < 18:
+                    print('Вам нет 18 лет, пожалуйста, покиньте страницу')
+                    return
+                for k in range(video.duration):
+                    print(video.time_now + k + 1, end=' ')
+                    sleep(1)
+                    if k == video.duration - 1:
+                        print('Конец видео')
+                        video.time_now = 0
 
 
 ur = UrTube()
@@ -97,6 +120,3 @@ ur.watch_video('Для чего девушкам парень программи
 # Проверка входа в другой аккаунт
 ur.register('vasya_pupkin', 'F8098FM8fjm9jmi', 55)
 print(ur.current_user)
-
-
-
